@@ -1,27 +1,36 @@
-AFLAGS=-f elf64
-EXEC=kernel
-ASM=nasm
+arch ?= x86_64
+kernel := build/kernel-$(arch).bin
+iso := build/minos-$(arch).iso
 
-kernel.bin: linker.ld multiboot_header.o boot.o
-	ld -n -o kernel.bin -T linker.ld multiboot_header.o boot.o
+linker := src/debian/$(arch)/linker.ld
+grub_cfg := src/debian/$(arch)/grub.cfg
+sources := $(wildcard src/debian/$(arch)/*.asm)
+objects := $(patsubst src/debian/$(arch)/%.asm, \
+    build/debian/$(arch)/%.o, $(sources))
 
-multiboot_header.o: multiboot_header.asm
-	$(ASM) $(AFLAGS) multiboot_header.asm
+.PHONY: all clean run iso
 
-boot.o: boot.asm
-	$(ASM) $(AFLAGS) boot.asm
-
-.PHONY: all create clean kernel
-
-kernel: kernel.bin
-
-all:
-	$(EXEC)
-
-@create:
-	$(all)
-	cp kernel.bin iso_minosv1/boot/
-	grub-mkrescue -o minos.iso iso_minosv1/
+all: $(kernel)
 
 clean:
-	rm -rf *.o *.bin multiboot_header boot
+	rm -r build
+
+run: $(iso)
+	qemu-system-x86_64 -cdrom $(iso)
+
+iso: $(iso)
+
+$(iso): $(kernel) $(grub_cfg)
+	mkdir -p build/isofiles/boot/grub
+	cp $(kernel) build/isofiles/boot/kernel.bin
+	cp $(grub_cfg) build/isofiles/boot/grub
+	grub-mkrescue -o $(iso) build/isofiles 2> /dev/null
+	rm -r build/isofiles
+
+$(kernel): $(objects)
+	ld -n -T $(linker) -o $(kernel) $(objects)
+
+# compile assembly files
+build/debian/$(arch)/%.o: src/debian/$(arch)/%.asm
+	mkdir -p $(shell dirname $@)
+	nasm -felf64 $< -o $@
