@@ -1,2 +1,2 @@
 # minOs
-From [https://github.com/ashleygwilliams/x86-kernel](os.phil-opp).
+From [os.phil-opp tutorial](https://os.phil-opp.com/).
