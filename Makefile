@@ -2,11 +2,11 @@ arch ?= x86_64
 kernel := build/kernel-$(arch).bin
 iso := build/minos-$(arch).iso
 
-linker := src/debian/$(arch)/linker.ld
-grub_cfg := src/debian/$(arch)/grub.cfg
-sources := $(wildcard src/debian/$(arch)/*.asm)
-objects := $(patsubst src/debian/$(arch)/%.asm, \
-    build/debian/$(arch)/%.o, $(sources))
+linker := src/arch/$(arch)/linker.ld
+grub_cfg := src/arch/$(arch)/grub.cfg
+sources := $(wildcard src/arch/$(arch)/*.asm)
+objects := $(patsubst src/arch/$(arch)/%.asm, \
+    build/arch/$(arch)/%.o, $(sources))
 
 .PHONY: all clean run iso
 
@@ -31,6 +31,6 @@ $(kernel): $(objects)
 	ld -n -T $(linker) -o $(kernel) $(objects)
 
 # compile assembly files
-build/debian/$(arch)/%.o: src/debian/$(arch)/%.asm
+build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm
 	mkdir -p $(shell dirname $@)
 	nasm -felf64 $< -o $@

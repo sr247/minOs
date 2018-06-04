@@ -1,0 +1,7 @@
+[package]
+name = "min_os"
+version = "0.1.0"
+authors = ["Stéphane Romany"]
+
+[lib]
+crate-type = ["staticlib"]
